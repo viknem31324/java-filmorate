@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationUserException;
 import ru.yandex.practicum.filmorate.exception.UserAlreadyExistException;
@@ -13,6 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
+@Slf4j
 public class UserController {
     private final Map<String, User> users = new HashMap<>();
 
@@ -23,6 +25,8 @@ public class UserController {
 
     @PostMapping
     public User createUser(@RequestBody User user) {
+        log.debug("Текущий пользователь: {}", user);
+
         UserValidation.validation(user);
 
         if (users.containsKey(user.getEmail())) {
@@ -36,6 +40,8 @@ public class UserController {
 
     @PutMapping
     public User updateUser(@RequestBody User user) {
+        log.debug("Текущий пользователь: {}", user);
+
         UserValidation.validation(user);
 
         users.put(user.getEmail(), user);
