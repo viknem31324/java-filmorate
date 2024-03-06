@@ -12,7 +12,6 @@ import java.time.LocalDate;
 @Data
 public class Film {
     private final int id;
-    @NonNull
     private final String name;
     private String description;
     private LocalDate releaseDate;

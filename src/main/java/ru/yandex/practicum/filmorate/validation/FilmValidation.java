@@ -12,7 +12,11 @@ public class FilmValidation {
     private static final Integer MAX_LENGTH_DESCRIPTION = 200;
     private static final LocalDate BIRTHDAY_MOVIE = LocalDate.of(1895, Month.DECEMBER, 28);
     public static void validation(Film film) throws ValidationFilmException {
-        if (film.getDescription().length() > MAX_LENGTH_DESCRIPTION) {
+        if (film.getName() == null) {
+            throw new ValidationFilmException("Название фильма не может быть путым!");
+        }
+
+        if (film.getDescription() != null && film.getDescription().length() > MAX_LENGTH_DESCRIPTION) {
             log.debug("Текущее описание фильма: {}", film.getDescription().length());
             throw new ValidationFilmException("Описание превышает 200 символов!");
         }
