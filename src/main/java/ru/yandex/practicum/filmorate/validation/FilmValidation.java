@@ -11,6 +11,7 @@ import java.time.Month;
 public class FilmValidation {
     private static final Integer MAX_LENGTH_DESCRIPTION = 200;
     private static final LocalDate BIRTHDAY_MOVIE = LocalDate.of(1895, Month.DECEMBER, 28);
+
     public static void validation(Film film) throws ValidationFilmException {
         if (film.getName() == null || film.getName().isBlank()) {
             throw new ValidationFilmException("Название фильма не может быть путым!");
