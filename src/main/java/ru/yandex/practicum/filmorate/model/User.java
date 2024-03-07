@@ -1,14 +1,16 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.Value;
 
 import java.time.LocalDate;
 
-@Data
+@Value
+@Builder(toBuilder = true)
 public class User {
-    private final int id;
-    private final String email;
-    private final String login;
-    private String name;
-    private LocalDate birthday;
+    int id;
+    String email;
+    String login;
+    String name;
+    LocalDate birthday;
 }

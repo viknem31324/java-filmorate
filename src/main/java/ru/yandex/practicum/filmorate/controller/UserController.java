@@ -16,7 +16,8 @@ import java.util.Map;
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
-    private final Map<String, User> users = new HashMap<>();
+    private int userId = 1;
+    private final Map<Integer, User> users = new HashMap<>();
 
     @GetMapping
     public List<User> findAllUsers() {
@@ -24,28 +25,36 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        log.debug("Текущий пользователь: {}", user);
+    public User createUser(@RequestBody User requestUser) {
+        UserValidation.validation(requestUser);
+        User user = requestUser.toBuilder()
+                .id(userId++)
+                .name(requestUser.getName() == null ? requestUser.getLogin() : requestUser.getName())
+                .build();
 
-        UserValidation.validation(user);
+        log.info("Текущий пользователь: {}", user);
 
-        if (users.containsKey(user.getEmail())) {
+        if (users.containsKey(user.getId())) {
             throw new UserAlreadyExistException("Пользователь с таким email уже существует!");
         }
 
-        users.put(user.getEmail(), user);
+        users.put(user.getId(), user);
 
         return user;
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User user) {
-        log.debug("Текущий пользователь: {}", user);
+    public User updateUser(@RequestBody User requestUser) {
+        log.info("Текущий пользователь: {}", requestUser);
 
-        UserValidation.validation(user);
+        if (!users.containsKey(requestUser.getId())) {
+            throw new ValidationUserException("Пользователя не существует!");
+        }
 
-        users.put(user.getEmail(), user);
+        UserValidation.validation(requestUser);
 
-        return user;
+        users.put(requestUser.getId(), requestUser);
+
+        return requestUser;
     }
 }

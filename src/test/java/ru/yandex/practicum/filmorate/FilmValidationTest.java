@@ -1,10 +1,11 @@
 package ru.yandex.practicum.filmorate;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exception.ValidationFilmException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.validation.FilmValidation;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -15,13 +16,24 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 public class FilmValidationTest {
+    private FilmController controller;
+
+    @BeforeEach
+    public void init() {
+        controller = new FilmController();
+    }
+
     @Test
     public void checkEmptyName() {
-        Film film = new Film(1, null);
+        Film film = Film.builder()
+                .releaseDate(LocalDate.of(1995, Month.DECEMBER, 9))
+                .duration(Duration.ofMinutes(60))
+                .description("text")
+                .build();
 
         ValidationFilmException emptyName = assertThrows(
                 ValidationFilmException.class,
-                () -> FilmValidation.validation(film)
+                () -> controller.createFilm(film)
         );
 
         assertEquals("Название фильма не может быть путым!", emptyName.getMessage());
@@ -29,7 +41,6 @@ public class FilmValidationTest {
 
     @Test
     public void checkLengthDescription() {
-        Film film = new Film(1, "Film");
         String description = "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Fugit earum aut deleniti!" +
                 " Cupiditate nisi nobis possimus quia, facere beatae sequi, laborum ullam, quos maxime facilis " +
                 "aliquid molestiae. Labore illum possimus corrupti non consectetur, saepe consequuntur quaerat" +
@@ -48,12 +59,16 @@ public class FilmValidationTest {
                 " aut rem soluta asperiores, amet dolor blanditiis! Ex eum beatae aspernatur accusantium " +
                 "praesentium provident nihil ipsam quam. Magni quas consectetur ratione delectus aperiam " +
                 "deleniti eligendi fuga beatae, sequi mollitia.";
-
-        film.setDescription(description);
+        Film film = Film.builder()
+                .name("film")
+                .releaseDate(LocalDate.of(1995, Month.DECEMBER, 9))
+                .duration(Duration.ofMinutes(60))
+                .description(description)
+                .build();
 
         ValidationFilmException incorrectDescription = assertThrows(
                 ValidationFilmException.class,
-                () -> FilmValidation.validation(film)
+                () -> controller.createFilm(film)
         );
 
         assertEquals("Описание превышает 200 символов!", incorrectDescription.getMessage());
@@ -61,12 +76,16 @@ public class FilmValidationTest {
 
     @Test
     public void checkDateRealize() {
-        Film film = new Film(1, "Film");
-        film.setReleaseDate(LocalDate.of(1800, Month.DECEMBER, 12));
+        Film film = Film.builder()
+                .name("film")
+                .releaseDate(LocalDate.of(1800, Month.DECEMBER, 9))
+                .duration(Duration.ofMinutes(60))
+                .description("description")
+                .build();
 
         ValidationFilmException incorrectDateRealize = assertThrows(
                 ValidationFilmException.class,
-                () -> FilmValidation.validation(film)
+                () -> controller.createFilm(film)
         );
 
         assertEquals("Неверная дата выхода фильма в прокат!", incorrectDateRealize.getMessage());
@@ -74,12 +93,16 @@ public class FilmValidationTest {
 
     @Test
     public void checkDuration() {
-        Film film = new Film(1, "Film");
-        film.setDuration(Duration.ofMinutes(-1000));
+        Film film = Film.builder()
+                .name("film")
+                .releaseDate(LocalDate.of(1970, Month.DECEMBER, 9))
+                .duration(Duration.ofMinutes(-60))
+                .description("description")
+                .build();
 
         ValidationFilmException incorrectDateRealize = assertThrows(
                 ValidationFilmException.class,
-                () -> FilmValidation.validation(film)
+                () -> controller.createFilm(film)
         );
 
         assertEquals("Неверная продолжительность фильма!", incorrectDateRealize.getMessage());

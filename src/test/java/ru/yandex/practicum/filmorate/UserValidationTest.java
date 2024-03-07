@@ -1,10 +1,11 @@
 package ru.yandex.practicum.filmorate;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.ValidationUserException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.validation.UserValidation;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -14,24 +15,35 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 public class UserValidationTest {
+    private UserController controller;
+
+    @BeforeEach
+    public void init() {
+        controller = new UserController();
+    }
+
     @Test
     public void checkValidationEmail() {
-        User user = new User(1, null, "Login");
+        User user = User.builder()
+                .login("login")
+                .name("name")
+                .birthday(LocalDate.of(1998, Month.MAY, 9))
+                .build();
 
-        User finalUser = user;
         ValidationUserException emptyEmail = assertThrows(
                 ValidationUserException.class,
-                () -> UserValidation.validation(finalUser)
+                () -> controller.createUser(user)
         );
 
         assertEquals("Не заполнен email!", emptyEmail.getMessage());
 
-        user = new User(1, "testyandex.ru", "Login");
+        User userNew = user.toBuilder()
+                .email("testyandex.ru")
+                .build();
 
-        User finalUser1 = user;
         ValidationUserException incorrectEmail = assertThrows(
                 ValidationUserException.class,
-                () -> UserValidation.validation(finalUser1)
+                () -> controller.createUser(userNew)
         );
 
         assertEquals("Некорректный email!", incorrectEmail.getMessage());
@@ -39,22 +51,26 @@ public class UserValidationTest {
 
     @Test
     public void checkValidationLogin() {
-        User user = new User(1, "test@yandex.ru", null);
+        User user = User.builder()
+                .email("test@yandex.ru")
+                .name("name")
+                .birthday(LocalDate.of(1998, Month.MAY, 9))
+                .build();
 
-        User finalUser = user;
         ValidationUserException emptyLogin = assertThrows(
                 ValidationUserException.class,
-                () -> UserValidation.validation(finalUser)
+                () -> controller.createUser(user)
         );
 
         assertEquals("Не заполнен логин!", emptyLogin.getMessage());
 
-        user = new User(1, "test@yandex.ru", "   Logi n   ");
+        User userNew = user.toBuilder()
+                .login("   log in   ")
+                .build();
 
-        User finalUser1 = user;
         ValidationUserException incorrectLogin = assertThrows(
                 ValidationUserException.class,
-                () -> UserValidation.validation(finalUser1)
+                () -> controller.createUser(userNew)
         );
 
         assertEquals("Логин не может содержать пробелы!", incorrectLogin.getMessage());
@@ -63,19 +79,26 @@ public class UserValidationTest {
     @Test
     public void checkEmptyName() {
         String login = "Login";
-        User user = new User(1, "test@yandex.ru", login);
-        UserValidation.validation(user);
-        assertEquals(login, user.getName());
+        User user = User.builder()
+                .email("test@yandex.ru")
+                .login(login)
+                .birthday(LocalDate.of(1998, Month.MAY, 9))
+                .build();
+        User newUser = controller.createUser(user);
+        assertEquals(login, newUser.getName());
     }
 
     @Test
     public void checkCorrectBirthday() {
-        User user = new User(1, "test@yandex.ru", "Login");
-        user.setBirthday(LocalDate.of(2025, Month.DECEMBER, 12));
+        User user = User.builder()
+                .email("test@yandex.ru")
+                .login("login")
+                .birthday(LocalDate.of(2025, Month.MAY, 9))
+                .build();
 
         ValidationUserException incorrectBirthday = assertThrows(
                 ValidationUserException.class,
-                () -> UserValidation.validation(user)
+                () -> controller.createUser(user)
         );
 
         assertEquals("Некорректный день рождения!", incorrectBirthday.getMessage());

@@ -17,27 +17,22 @@ public class UserValidation {
         }
 
         if (user.getEmail().indexOf('@') == -1) {
-            log.debug("Текущий email: {}", user.getEmail());
+            log.info("Текущий email: {}", user.getEmail());
             throw new ValidationUserException("Некорректный email!");
         }
 
         if (user.getLogin() == null) {
-            log.debug("Текущий логин: {}", user.getLogin());
             throw new ValidationUserException("Не заполнен логин!");
         }
 
         int countWhitespace = StringUtils.countOccurrencesOf(user.getLogin(), " ");
         if (countWhitespace > 0) {
-            log.debug("Текущий логин: {}", user.getLogin());
+            log.info("Текущий логин: {}", user.getLogin());
             throw new ValidationUserException("Логин не может содержать пробелы!");
         }
 
-        if (user.getName() == null) {
-            user.setName(user.getLogin());
-        }
-
         if (user.getBirthday() != null && user.getBirthday().isAfter(nowData)) {
-            log.debug("Текущий день рождения: {}", user.getBirthday());
+            log.info("Текущий день рождения: {}", user.getBirthday());
             throw new ValidationUserException("Некорректный день рождения!");
         }
     }
