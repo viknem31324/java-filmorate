@@ -27,7 +27,7 @@ public class FilmValidationTest {
     public void checkEmptyName() {
         Film film = Film.builder()
                 .releaseDate(LocalDate.of(1995, Month.DECEMBER, 9))
-                .duration(Duration.ofMinutes(60))
+                .duration(60)
                 .description("text")
                 .build();
 
@@ -62,7 +62,7 @@ public class FilmValidationTest {
         Film film = Film.builder()
                 .name("film")
                 .releaseDate(LocalDate.of(1995, Month.DECEMBER, 9))
-                .duration(Duration.ofMinutes(60))
+                .duration(60)
                 .description(description)
                 .build();
 
@@ -79,7 +79,7 @@ public class FilmValidationTest {
         Film film = Film.builder()
                 .name("film")
                 .releaseDate(LocalDate.of(1800, Month.DECEMBER, 9))
-                .duration(Duration.ofMinutes(60))
+                .duration(60)
                 .description("description")
                 .build();
 
@@ -96,7 +96,7 @@ public class FilmValidationTest {
         Film film = Film.builder()
                 .name("film")
                 .releaseDate(LocalDate.of(1970, Month.DECEMBER, 9))
-                .duration(Duration.ofMinutes(-60))
+                .duration(-60)
                 .description("description")
                 .build();
 

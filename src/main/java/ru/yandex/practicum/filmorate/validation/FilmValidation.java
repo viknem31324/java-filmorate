@@ -26,7 +26,7 @@ public class FilmValidation {
             throw new ValidationFilmException("Неверная дата выхода фильма в прокат!");
         }
 
-        if (film.getDuration() != null && film.getDuration().isNegative()) {
+        if (film.getDuration() != null && film.getDuration() < 1) {
             log.debug("Текущая продолжительность фильма: {}", film.getDuration());
             throw new ValidationFilmException("Неверная продолжительность фильма!");
         }
