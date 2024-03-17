@@ -3,9 +3,9 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exception.ValidationFilmException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -15,11 +15,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 public class FilmValidationTest {
-    private FilmController controller;
+    private InMemoryFilmStorage storage;
 
     @BeforeEach
     public void init() {
-        controller = new FilmController();
+        storage = new InMemoryFilmStorage();
     }
 
     @Test
@@ -32,7 +32,7 @@ public class FilmValidationTest {
 
         ValidationFilmException emptyName = assertThrows(
                 ValidationFilmException.class,
-                () -> controller.createFilm(film)
+                () -> storage.createFilm(film)
         );
 
         assertEquals("Название фильма не может быть путым!", emptyName.getMessage());
@@ -67,7 +67,7 @@ public class FilmValidationTest {
 
         ValidationFilmException incorrectDescription = assertThrows(
                 ValidationFilmException.class,
-                () -> controller.createFilm(film)
+                () -> storage.createFilm(film)
         );
 
         assertEquals("Описание превышает 200 символов!", incorrectDescription.getMessage());
@@ -84,7 +84,7 @@ public class FilmValidationTest {
 
         ValidationFilmException incorrectDateRealize = assertThrows(
                 ValidationFilmException.class,
-                () -> controller.createFilm(film)
+                () -> storage.createFilm(film)
         );
 
         assertEquals("Неверная дата выхода фильма в прокат!", incorrectDateRealize.getMessage());
@@ -101,7 +101,7 @@ public class FilmValidationTest {
 
         ValidationFilmException incorrectDateRealize = assertThrows(
                 ValidationFilmException.class,
-                () -> controller.createFilm(film)
+                () -> storage.createFilm(film)
         );
 
         assertEquals("Неверная продолжительность фильма!", incorrectDateRealize.getMessage());

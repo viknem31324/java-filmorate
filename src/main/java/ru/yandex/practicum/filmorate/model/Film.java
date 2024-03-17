@@ -5,9 +5,6 @@ import lombok.Value;
 
 import java.time.LocalDate;
 
-/**
- * Film.
- */
 @Value
 @Builder(toBuilder = true)
 public class Film {
