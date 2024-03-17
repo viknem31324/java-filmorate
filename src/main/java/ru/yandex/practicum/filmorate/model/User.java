@@ -5,15 +5,12 @@ import lombok.Value;
 
 import java.time.LocalDate;
 
-/**
- * Film.
- */
 @Value
 @Builder(toBuilder = true)
-public class Film {
+public class User {
     long id;
+    String email;
+    String login;
     String name;
-    String description;
-    LocalDate releaseDate;
-    Integer duration;
+    LocalDate birthday;
 }
