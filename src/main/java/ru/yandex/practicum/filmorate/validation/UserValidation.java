@@ -6,9 +6,11 @@ import ru.yandex.practicum.filmorate.exception.ValidationUserException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
+import java.util.regex.Pattern;
 
 @Slf4j
 public class UserValidation {
+    private static final String REGEX_EMAIL_PATTERN = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$";
     private static final LocalDate nowData = LocalDate.now();
 
     public static void validation(User user) throws ValidationUserException {
@@ -16,7 +18,7 @@ public class UserValidation {
             throw new ValidationUserException("Не заполнен email!");
         }
 
-        if (user.getEmail().indexOf('@') == -1) {
+        if (!patternMatches(user.getEmail(), REGEX_EMAIL_PATTERN)) {
             log.info("Текущий email: {}", user.getEmail());
             throw new ValidationUserException("Некорректный email!");
         }
@@ -35,5 +37,11 @@ public class UserValidation {
             log.info("Текущий день рождения: {}", user.getBirthday());
             throw new ValidationUserException("Некорректный день рождения!");
         }
+    }
+
+    public static boolean patternMatches(String emailAddress, String regexPattern) {
+        return Pattern.compile(regexPattern)
+                .matcher(emailAddress)
+                .matches();
     }
 }

@@ -16,8 +16,8 @@ import java.util.Map;
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
-    private int userId = 1;
-    private final Map<Integer, User> users = new HashMap<>();
+    private long userId = 1;
+    private final Map<String, User> users = new HashMap<>();
 
     @GetMapping
     public List<User> findAllUsers() {
@@ -34,11 +34,11 @@ public class UserController {
 
         log.info("Текущий пользователь: {}", user);
 
-        if (users.containsKey(user.getId())) {
+        if (users.containsKey(user.getEmail())) {
             throw new UserAlreadyExistException("Пользователь с таким email уже существует!");
         }
 
-        users.put(user.getId(), user);
+        users.put(user.getEmail(), user);
 
         return user;
     }
@@ -47,13 +47,13 @@ public class UserController {
     public User updateUser(@RequestBody User requestUser) {
         log.info("Текущий пользователь: {}", requestUser);
 
-        if (!users.containsKey(requestUser.getId())) {
+        if (!users.containsKey(requestUser.getEmail())) {
             throw new ValidationUserException("Пользователя не существует!");
         }
 
         UserValidation.validation(requestUser);
 
-        users.put(requestUser.getId(), requestUser);
+        users.put(requestUser.getEmail(), requestUser);
 
         return requestUser;
     }

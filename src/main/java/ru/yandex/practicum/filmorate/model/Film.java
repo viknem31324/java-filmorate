@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Value
 @Builder(toBuilder = true)
 public class Film {
-    int id;
+    long id;
     String name;
     String description;
     LocalDate releaseDate;
