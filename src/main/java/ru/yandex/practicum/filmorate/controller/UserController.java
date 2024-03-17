@@ -22,6 +22,11 @@ public class UserController {
         return userService.findAllUsers();
     }
 
+    @GetMapping("/{userId}")
+    public User findUserById(@PathVariable int userId) {
+        return userService.findUserById(userId);
+    }
+
     @PostMapping
     public User createUser(@RequestBody User user) {
         return userService.createUser(user);

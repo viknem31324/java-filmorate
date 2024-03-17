@@ -20,6 +20,10 @@ public class UserService {
         return storage.findAllUsers();
     }
 
+    public User findUserById(int userId) {
+        return storage.findUserById(userId);
+    }
+
     public User createUser(User user) {
         return storage.createUser(user);
     }
