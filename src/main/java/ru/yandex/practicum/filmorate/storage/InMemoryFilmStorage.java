@@ -3,14 +3,13 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationFilmException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validation.FilmValidation;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -29,6 +28,18 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .filter(film -> film.getId() == filmId)
                 .findFirst()
                 .orElseThrow(() -> new FilmNotFoundException(String.format("Фильм с id %d не найден", filmId)));
+    }
+
+    @Override
+    public List<Film> findPopularFilms(int count) {
+        return films.values().stream()
+                .sorted(Comparator.comparingInt(item -> {
+                    Film film = (Film) item;
+                    Set<Long> likes = film.getLikes();
+                    return likes.size();
+                }).reversed())
+                .limit(count)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -57,5 +68,23 @@ public class InMemoryFilmStorage implements FilmStorage {
         films.put(film.getId(), film);
 
         return film;
+    }
+
+    @Override
+    public void addToLikes(long filmId, long userId) {
+        if (!films.containsKey(filmId)) {
+            throw new FilmNotFoundException(String.format("Фильм с id %d не найден", filmId));
+        }
+
+        films.get(filmId).getLikes().add(userId);
+    }
+
+    @Override
+    public void deleteFromLikes(long filmId, long userId) {
+        if (!films.containsKey(filmId)) {
+            throw new FilmNotFoundException(String.format("Фильм с id %d не найден", filmId));
+        }
+
+        films.get(filmId).getLikes().remove(userId);
     }
 }
