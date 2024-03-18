@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.validation.UserValidation;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -22,11 +23,37 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User findUserById(int userId) {
+    public User findUserById(long userId) {
         return users.values().stream()
                 .filter(user -> user.getId() == userId)
                 .findFirst()
                 .orElseThrow(() -> new UserNotFoundException(String.format("Пользователь с id %d не найден", userId)));
+    }
+
+    @Override
+    public List<User> findUserFriends(long id) {
+        if (!users.containsKey(id)) {
+            throw new UserNotFoundException(String.format("Пользователь с id %d не найден", id));
+        }
+
+        Set<Long> friendsId = users.get(id).getFriends();
+        return users.values().stream()
+                .filter(user -> friendsId.contains(user.getId()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<User> findMutualFriends(long id, long otherId) {
+        List<User> listUser = findUserFriends(id);
+
+        if (!users.containsKey(otherId)) {
+            throw new UserNotFoundException(String.format("Пользователь с id %d не найден", id));
+        }
+
+        Set<Long> listIdOtherUser = users.get(otherId).getFriends();
+        return listUser.stream()
+                .filter(user -> listIdOtherUser.contains(user.getId()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -63,5 +90,31 @@ public class InMemoryUserStorage implements UserStorage {
         users.put(requestUser.getId(), requestUser);
 
         return requestUser;
+    }
+
+    @Override
+    public void addToFriends(long id, long friendId) {
+        if (!users.containsKey(id)) {
+            throw new UserNotFoundException(String.format("Пользователь с id %d не найден", id));
+        }
+
+        if (!users.containsKey(friendId)) {
+            throw new UserNotFoundException(String.format("Пользователь с id %d не найден", friendId));
+        }
+
+        users.get(id).getFriends().add(friendId);
+    }
+
+    @Override
+    public void deleteFromFriends(long id, long friendId) {
+        if (!users.containsKey(id)) {
+            throw new UserNotFoundException(String.format("Пользователь с id %d не найден", id));
+        }
+
+        if (!users.containsKey(friendId)) {
+            throw new UserNotFoundException(String.format("Пользователь с id %d не найден", friendId));
+        }
+
+        users.get(id).getFriends().remove(friendId);
     }
 }
