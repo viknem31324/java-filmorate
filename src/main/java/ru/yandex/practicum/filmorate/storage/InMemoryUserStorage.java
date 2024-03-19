@@ -24,6 +24,8 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User findUserById(long userId) {
+        log.info("id пользователя: {}", userId);
+
         return users.values().stream()
                 .filter(user -> user.getId() == userId)
                 .findFirst()
@@ -32,11 +34,14 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public List<User> findUserFriends(long id) {
+        log.info("id пользователя: {}", id);
+
         if (!users.containsKey(id)) {
             throw new UserNotFoundException(String.format("Пользователь с id %d не найден", id));
         }
 
         Set<Long> friendsId = users.get(id).getFriends();
+        log.info("Список id друзей пользователя: {}", friendsId);
         return users.values().stream()
                 .filter(user -> friendsId.contains(user.getId()))
                 .collect(Collectors.toList());
@@ -44,13 +49,18 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public List<User> findMutualFriends(long id, long otherId) {
+        log.info("id первого пользователя: {}", id);
+        log.info("id второго пользователя: {}", id);
         List<User> listUser = findUserFriends(id);
+        log.info("Список друзей первого пользователя: {}", listUser);
 
         if (!users.containsKey(otherId)) {
             throw new UserNotFoundException(String.format("Пользователь с id %d не найден", id));
         }
 
         Set<Long> listIdOtherUser = users.get(otherId).getFriends();
+        log.info("Список id друзей второго пользователя: {}", listIdOtherUser);
+
         return listUser.stream()
                 .filter(user -> listIdOtherUser.contains(user.getId()))
                 .collect(Collectors.toList());
@@ -93,7 +103,10 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public void addToFriends(long id, long friendId) {
+    public User addToFriends(long id, long friendId) {
+        log.info("id первого пользователя: {}", id);
+        log.info("id второго пользователя: {}", id);
+
         if (!users.containsKey(id)) {
             throw new UserNotFoundException(String.format("Пользователь с id %d не найден", id));
         }
@@ -103,10 +116,14 @@ public class InMemoryUserStorage implements UserStorage {
         }
 
         users.get(id).getFriends().add(friendId);
+        return users.get(friendId);
     }
 
     @Override
-    public void deleteFromFriends(long id, long friendId) {
+    public User deleteFromFriends(long id, long friendId) {
+        log.info("id первого пользователя: {}", id);
+        log.info("id второго пользователя: {}", id);
+
         if (!users.containsKey(id)) {
             throw new UserNotFoundException(String.format("Пользователь с id %d не найден", id));
         }
@@ -115,6 +132,8 @@ public class InMemoryUserStorage implements UserStorage {
             throw new UserNotFoundException(String.format("Пользователь с id %d не найден", friendId));
         }
 
-        users.get(id).getFriends().remove(friendId);
+        User user = users.get(id);
+        user.getFriends().remove(friendId);
+        return user;
     }
 }

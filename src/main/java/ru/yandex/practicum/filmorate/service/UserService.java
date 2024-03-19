@@ -37,11 +37,11 @@ public class UserService {
         return storage.updateUser(user);
     }
 
-    public void addToFriends(long id, long friendId) {
-        storage.addToFriends(id, friendId);
+    public User addToFriends(long id, long friendId) {
+        return storage.addToFriends(id, friendId);
     }
 
-    public void deleteFromFriends(long id, long friendId) {
-        storage.deleteFromFriends(id, friendId);
+    public User deleteFromFriends(long id, long friendId) {
+        return storage.deleteFromFriends(id, friendId);
     }
 }
