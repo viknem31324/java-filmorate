@@ -52,4 +52,10 @@ public class ErrorHandler {
     public ExceptionResponse handleThrowable(final Throwable e) {
         return new ExceptionResponse("Произошла непредвиденная ошибка.");
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ExceptionResponse handleDataIncorrectException(final DataIncorrectException e) {
+        return new ExceptionResponse(e.getMessage());
+    }
 }

@@ -48,12 +48,12 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void addToLikes(long id, long userId) {
-        filmService.addToLikes(id, userId);
+    public Film addToLikes(long id, long userId) {
+        return filmService.addToLikes(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void deleteFromLikes(long filmId, long userId) {
-        filmService.deleteFromLikes(filmId, userId);
+    public Film deleteFromLikes(long filmId, long userId) {
+        return filmService.deleteFromLikes(filmId, userId);
     }
 }

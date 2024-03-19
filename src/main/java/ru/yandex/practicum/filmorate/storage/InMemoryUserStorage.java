@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.DataIncorrectException;
 import ru.yandex.practicum.filmorate.exception.UserAlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationUserException;
@@ -42,6 +43,7 @@ public class InMemoryUserStorage implements UserStorage {
 
         Set<Long> friendsId = users.get(id).getFriends();
         log.info("Список id друзей пользователя: {}", friendsId);
+
         return users.values().stream()
                 .filter(user -> friendsId.contains(user.getId()))
                 .collect(Collectors.toList());
@@ -72,6 +74,7 @@ public class InMemoryUserStorage implements UserStorage {
         User user = requestUser.toBuilder()
                 .id(userId++)
                 .name(requestUser.getName() == null ? requestUser.getLogin() : requestUser.getName())
+                .friends(requestUser.getFriends() == null ? Set.of() : requestUser.getFriends())
                 .build();
 
         log.info("Текущий пользователь: {}", user);
@@ -91,8 +94,12 @@ public class InMemoryUserStorage implements UserStorage {
     public User updateUser(User requestUser) {
         log.info("Текущий пользователь: {}", requestUser);
 
+        if (requestUser == null) {
+            throw new DataIncorrectException("Ошибка запроса");
+        }
+
         if (!users.containsKey(requestUser.getId())) {
-            throw new ValidationUserException("Пользователя не существует!");
+            throw new UserNotFoundException("Пользователя не существует!");
         }
 
         UserValidation.validation(requestUser);
@@ -105,7 +112,7 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User addToFriends(long id, long friendId) {
         log.info("id первого пользователя: {}", id);
-        log.info("id второго пользователя: {}", id);
+        log.info("id второго пользователя: {}", friendId);
 
         if (!users.containsKey(id)) {
             throw new UserNotFoundException(String.format("Пользователь с id %d не найден", id));
@@ -115,8 +122,25 @@ public class InMemoryUserStorage implements UserStorage {
             throw new UserNotFoundException(String.format("Пользователь с id %d не найден", friendId));
         }
 
-        users.get(id).getFriends().add(friendId);
-        return users.get(friendId);
+        Set<Long> userOneFriends = new HashSet<>(users.get(id).getFriends());
+        userOneFriends.add(friendId);
+
+        User userOne = users.get(id).toBuilder()
+                .friends(userOneFriends)
+                .build();
+
+        users.put(userOne.getId(), userOne);
+
+        Set<Long> userTwoFriends = new HashSet<>(users.get(friendId).getFriends());
+        userTwoFriends.add(id);
+
+        User userTwo = users.get(friendId).toBuilder()
+                .friends(userTwoFriends)
+                .build();
+
+        users.put(userTwo.getId(), userTwo);
+
+        return userOne;
     }
 
     @Override
@@ -132,8 +156,24 @@ public class InMemoryUserStorage implements UserStorage {
             throw new UserNotFoundException(String.format("Пользователь с id %d не найден", friendId));
         }
 
-        User user = users.get(id);
-        user.getFriends().remove(friendId);
-        return user;
+        Set<Long> userOneFriends = new HashSet<>(users.get(id).getFriends());
+        userOneFriends.remove(friendId);
+
+        User userOne = users.get(id).toBuilder()
+                .friends(userOneFriends)
+                .build();
+
+        users.put(userOne.getId(), userOne);
+
+        Set<Long> userTwoFriends = new HashSet<>(users.get(friendId).getFriends());
+        userTwoFriends.remove(id);
+
+        User userTwo = users.get(friendId).toBuilder()
+                .friends(userTwoFriends)
+                .build();
+
+        users.put(userTwo.getId(), userTwo);
+
+        return userOne;
     }
 }

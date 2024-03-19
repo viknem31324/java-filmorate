@@ -32,12 +32,12 @@ public class FilmService {
         return storage.updateFilm(film);
     }
 
-    public void addToLikes(long filmId, long userId) {
-        storage.addToLikes(filmId, userId);
+    public Film addToLikes(long filmId, long userId) {
+        return storage.addToLikes(filmId, userId);
     }
 
-    public void deleteFromLikes(long filmId, long userId) {
-        storage.deleteFromLikes(filmId, userId);
+    public Film deleteFromLikes(long filmId, long userId) {
+        return storage.deleteFromLikes(filmId, userId);
     }
 
     public List<Film> findPopularFilms(int count) {

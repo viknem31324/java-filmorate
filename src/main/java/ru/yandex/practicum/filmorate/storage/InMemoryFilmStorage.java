@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.DataIncorrectException;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationFilmException;
@@ -24,6 +25,8 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film findFilmById(int filmId) {
+        log.info("id фильма: {}", filmId);
+
         return films.values().stream()
                 .filter(film -> film.getId() == filmId)
                 .findFirst()
@@ -32,12 +35,10 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> findPopularFilms(int count) {
+        log.info("Лимит фильмов: {}", count);
+
         return films.values().stream()
-                .sorted(Comparator.comparingInt(item -> {
-                    Film film = (Film) item;
-                    Set<Long> likes = film.getLikes();
-                    return likes.size();
-                }).reversed())
+                .sorted(Comparator.comparingInt(film -> ((Film) film).getLikes().size()).reversed())
                 .limit(count)
                 .collect(Collectors.toList());
     }
@@ -47,9 +48,10 @@ public class InMemoryFilmStorage implements FilmStorage {
         FilmValidation.validation(requestFilm);
         Film film = requestFilm.toBuilder()
                 .id(filmId++)
+                .likes(Set.of())
                 .build();
 
-        log.debug("Текущий фильм: {}", film);
+        log.info("Текущий фильм: {}", film);
 
         films.put(film.getId(), film);
 
@@ -58,10 +60,10 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
-        log.debug("Текущий фильм: {}", film);
+        log.info("Текущий фильм: {}", film);
 
         if (!films.containsKey(film.getId())) {
-            throw new ValidationFilmException("Такого фильма нет!");
+            throw new FilmNotFoundException("Такого фильма нет!");
         }
 
         FilmValidation.validation(film);
@@ -71,20 +73,30 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public void addToLikes(long filmId, long userId) {
+    public Film addToLikes(long filmId, long userId) {
         if (!films.containsKey(filmId)) {
             throw new FilmNotFoundException(String.format("Фильм с id %d не найден", filmId));
         }
 
-        films.get(filmId).getLikes().add(userId);
+        log.info("Текущий фильм: {}", films.get(filmId));
+        log.info("id пользователя ставящего лайк: {}", userId);
+
+        Film film = films.get(filmId);
+        film.getLikes().add(userId);
+        return film;
     }
 
     @Override
-    public void deleteFromLikes(long filmId, long userId) {
+    public Film deleteFromLikes(long filmId, long userId) {
         if (!films.containsKey(filmId)) {
             throw new FilmNotFoundException(String.format("Фильм с id %d не найден", filmId));
         }
 
-        films.get(filmId).getLikes().remove(userId);
+        log.info("Текущий фильм: {}", films.get(filmId));
+        log.info("id пользователя убирающего лайк: {}", userId);
+
+        Film film = films.get(filmId);
+        film.getLikes().remove(userId);
+        return film;
     }
 }
