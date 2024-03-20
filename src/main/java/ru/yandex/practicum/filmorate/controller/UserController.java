@@ -32,6 +32,11 @@ public class UserController {
         return userService.findUserFriends(id);
     }
 
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> findMutualFriends(@PathVariable long id, @PathVariable long otherId) {
+        return userService.findMutualFriends(id, otherId);
+    }
+
     @PostMapping
     public User createUser(@RequestBody User user) {
         return userService.createUser(user);

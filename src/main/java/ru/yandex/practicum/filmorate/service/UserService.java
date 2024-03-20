@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
@@ -27,6 +26,10 @@ public class UserService {
 
     public List<User> findUserFriends(long id) {
         return storage.findUserFriends(id);
+    }
+
+    public List<User> findMutualFriends(long id, long otherId) {
+        return storage.findMutualFriends(id, otherId);
     }
 
     public User createUser(User user) {

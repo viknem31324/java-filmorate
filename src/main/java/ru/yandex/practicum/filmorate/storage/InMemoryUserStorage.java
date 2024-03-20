@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.DataIncorrectException;
 import ru.yandex.practicum.filmorate.exception.UserAlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationUserException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.validation.UserValidation;
 
@@ -74,7 +73,7 @@ public class InMemoryUserStorage implements UserStorage {
         User user = requestUser.toBuilder()
                 .id(userId++)
                 .name(requestUser.getName() == null ? requestUser.getLogin() : requestUser.getName())
-                .friends(requestUser.getFriends() == null ? Set.of() : requestUser.getFriends())
+                .friends(requestUser.getFriends() == null ? new HashSet<>() : requestUser.getFriends())
                 .build();
 
         log.info("Текущий пользователь: {}", user);

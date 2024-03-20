@@ -2,10 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.DataIncorrectException;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationFilmException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validation.FilmValidation;
 
@@ -38,7 +35,14 @@ public class InMemoryFilmStorage implements FilmStorage {
         log.info("Лимит фильмов: {}", count);
 
         return films.values().stream()
-                .sorted(Comparator.comparingInt(film -> ((Film) film).getLikes().size()).reversed())
+                .sorted(Comparator.comparingInt(item -> {
+                    Film film = (Film) item;
+                    Set<Long> likes = film.getLikes();
+                    if (likes != null) {
+                        return likes.size();
+                    }
+                    return 0;
+                }).reversed())
                 .limit(count)
                 .collect(Collectors.toList());
     }
@@ -48,7 +52,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         FilmValidation.validation(requestFilm);
         Film film = requestFilm.toBuilder()
                 .id(filmId++)
-                .likes(Set.of())
+                .likes(requestFilm.getLikes() == null ? new HashSet<>() : requestFilm.getLikes())
                 .build();
 
         log.info("Текущий фильм: {}", film);
@@ -81,8 +85,15 @@ public class InMemoryFilmStorage implements FilmStorage {
         log.info("Текущий фильм: {}", films.get(filmId));
         log.info("id пользователя ставящего лайк: {}", userId);
 
-        Film film = films.get(filmId);
-        film.getLikes().add(userId);
+        Set<Long> likes = new HashSet<>(films.get(filmId).getLikes());
+        likes.add(userId);
+
+        Film film = films.get(filmId).toBuilder()
+                .likes(likes)
+                .build();
+
+        films.put(film.getId(), film);
+
         return film;
     }
 
@@ -95,8 +106,15 @@ public class InMemoryFilmStorage implements FilmStorage {
         log.info("Текущий фильм: {}", films.get(filmId));
         log.info("id пользователя убирающего лайк: {}", userId);
 
-        Film film = films.get(filmId);
-        film.getLikes().remove(userId);
+        Set<Long> likes = new HashSet<>(films.get(filmId).getLikes());
+        likes.remove(userId);
+
+        Film film = films.get(filmId).toBuilder()
+                .likes(likes)
+                .build();
+
+        films.put(film.getId(), film);
+
         return film;
     }
 }
