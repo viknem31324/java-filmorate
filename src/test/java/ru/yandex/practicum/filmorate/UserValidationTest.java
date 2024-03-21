@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class UserValidationTest {
     @Autowired
     private UserService service;
+
     @Test
     public void checkValidationEmail() {
         User user = User.builder()
