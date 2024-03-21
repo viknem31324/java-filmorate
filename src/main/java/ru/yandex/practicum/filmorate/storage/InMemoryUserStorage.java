@@ -1,17 +1,16 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.DataIncorrectException;
 import ru.yandex.practicum.filmorate.exception.UserAlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.validation.UserValidation;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Component
+@Repository
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
     private long userId = 1;
@@ -24,7 +23,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User findUserById(long userId) {
-        log.info("id пользователя: {}", userId);
+        log.debug("id пользователя: {}", userId);
 
         return users.values().stream()
                 .filter(user -> user.getId() == userId)
@@ -34,14 +33,10 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public List<User> findUserFriends(long id) {
-        log.info("id пользователя: {}", id);
-
-        if (!users.containsKey(id)) {
-            throw new UserNotFoundException(String.format("Пользователь с id %d не найден", id));
-        }
+        log.debug("id пользователя: {}", id);
 
         Set<Long> friendsId = users.get(id).getFriends();
-        log.info("Список id друзей пользователя: {}", friendsId);
+        log.debug("Список id друзей пользователя: {}", friendsId);
 
         return users.values().stream()
                 .filter(user -> friendsId.contains(user.getId()))
@@ -50,17 +45,13 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public List<User> findMutualFriends(long id, long otherId) {
-        log.info("id первого пользователя: {}", id);
-        log.info("id второго пользователя: {}", id);
+        log.debug("id первого пользователя: {}", id);
+        log.debug("id второго пользователя: {}", id);
         List<User> listUser = findUserFriends(id);
-        log.info("Список друзей первого пользователя: {}", listUser);
-
-        if (!users.containsKey(otherId)) {
-            throw new UserNotFoundException(String.format("Пользователь с id %d не найден", id));
-        }
+        log.debug("Список друзей первого пользователя: {}", listUser);
 
         Set<Long> listIdOtherUser = users.get(otherId).getFriends();
-        log.info("Список id друзей второго пользователя: {}", listIdOtherUser);
+        log.debug("Список id друзей второго пользователя: {}", listIdOtherUser);
 
         return listUser.stream()
                 .filter(user -> listIdOtherUser.contains(user.getId()))
@@ -69,20 +60,13 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User createUser(User requestUser) {
-        UserValidation.validation(requestUser);
         User user = requestUser.toBuilder()
                 .id(userId++)
                 .name(requestUser.getName() == null ? requestUser.getLogin() : requestUser.getName())
                 .friends(requestUser.getFriends() == null ? new HashSet<>() : requestUser.getFriends())
                 .build();
 
-        log.info("Текущий пользователь: {}", user);
-
-        for (User userItem : users.values()) {
-            if (userItem.getEmail().equals(user.getEmail())) {
-                throw new UserAlreadyExistException("Пользователь с таким email уже существует!");
-            }
-        }
+        log.debug("Текущий пользователь: {}", user);
 
         users.put(user.getId(), user);
 
@@ -91,17 +75,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User updateUser(User requestUser) {
-        log.info("Текущий пользователь: {}", requestUser);
-
-        if (requestUser == null) {
-            throw new DataIncorrectException("Ошибка запроса");
-        }
-
-        if (!users.containsKey(requestUser.getId())) {
-            throw new UserNotFoundException("Пользователя не существует!");
-        }
-
-        UserValidation.validation(requestUser);
+        log.debug("Текущий пользователь: {}", requestUser);
 
         users.put(requestUser.getId(), requestUser);
 
@@ -110,16 +84,8 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User addToFriends(long id, long friendId) {
-        log.info("id первого пользователя: {}", id);
-        log.info("id второго пользователя: {}", friendId);
-
-        if (!users.containsKey(id)) {
-            throw new UserNotFoundException(String.format("Пользователь с id %d не найден", id));
-        }
-
-        if (!users.containsKey(friendId)) {
-            throw new UserNotFoundException(String.format("Пользователь с id %d не найден", friendId));
-        }
+        log.debug("id первого пользователя: {}", id);
+        log.debug("id второго пользователя: {}", friendId);
 
         Set<Long> userOneFriends = new HashSet<>(users.get(id).getFriends());
         userOneFriends.add(friendId);
@@ -144,16 +110,8 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User deleteFromFriends(long id, long friendId) {
-        log.info("id первого пользователя: {}", id);
-        log.info("id второго пользователя: {}", id);
-
-        if (!users.containsKey(id)) {
-            throw new UserNotFoundException(String.format("Пользователь с id %d не найден", id));
-        }
-
-        if (!users.containsKey(friendId)) {
-            throw new UserNotFoundException(String.format("Пользователь с id %d не найден", friendId));
-        }
+        log.debug("id первого пользователя: {}", id);
+        log.debug("id второго пользователя: {}", id);
 
         Set<Long> userOneFriends = new HashSet<>(users.get(id).getFriends());
         userOneFriends.remove(friendId);

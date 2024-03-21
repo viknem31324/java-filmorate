@@ -1,15 +1,14 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.validation.FilmValidation;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Component
+@Repository
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
     private long filmId = 1;
@@ -21,8 +20,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film findFilmById(int filmId) {
-        log.info("id фильма: {}", filmId);
+    public Film findFilmById(long filmId) {
+        log.debug("id фильма: {}", filmId);
 
         return films.values().stream()
                 .filter(film -> film.getId() == filmId)
@@ -32,7 +31,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> findPopularFilms(int count) {
-        log.info("Лимит фильмов: {}", count);
+        log.debug("Лимит фильмов: {}", count);
 
         return films.values().stream()
                 .sorted(Comparator.comparingInt(item -> {
@@ -49,13 +48,12 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film createFilm(Film requestFilm) {
-        FilmValidation.validation(requestFilm);
         Film film = requestFilm.toBuilder()
                 .id(filmId++)
                 .likes(requestFilm.getLikes() == null ? new HashSet<>() : requestFilm.getLikes())
                 .build();
 
-        log.info("Текущий фильм: {}", film);
+        log.debug("Текущий фильм: {}", film);
 
         films.put(film.getId(), film);
 
@@ -64,13 +62,8 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
-        log.info("Текущий фильм: {}", film);
+        log.debug("Текущий фильм: {}", film);
 
-        if (!films.containsKey(film.getId())) {
-            throw new FilmNotFoundException("Такого фильма нет!");
-        }
-
-        FilmValidation.validation(film);
         films.put(film.getId(), film);
 
         return film;
@@ -78,12 +71,8 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film addToLikes(long filmId, long userId) {
-        if (!films.containsKey(filmId)) {
-            throw new FilmNotFoundException(String.format("Фильм с id %d не найден", filmId));
-        }
-
-        log.info("Текущий фильм: {}", films.get(filmId));
-        log.info("id пользователя ставящего лайк: {}", userId);
+        log.debug("Текущий фильм: {}", films.get(filmId));
+        log.debug("id пользователя ставящего лайк: {}", userId);
 
         Set<Long> likes = new HashSet<>(films.get(filmId).getLikes());
         likes.add(userId);
@@ -99,12 +88,8 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film deleteFromLikes(long filmId, long userId) {
-        if (!films.containsKey(filmId)) {
-            throw new FilmNotFoundException(String.format("Фильм с id %d не найден", filmId));
-        }
-
-        log.info("Текущий фильм: {}", films.get(filmId));
-        log.info("id пользователя убирающего лайк: {}", userId);
+        log.debug("Текущий фильм: {}", films.get(filmId));
+        log.debug("id пользователя убирающего лайк: {}", userId);
 
         Set<Long> likes = new HashSet<>(films.get(filmId).getLikes());
         likes.remove(userId);

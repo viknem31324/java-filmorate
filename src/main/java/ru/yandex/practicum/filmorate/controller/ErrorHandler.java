@@ -9,41 +9,20 @@ import ru.yandex.practicum.filmorate.model.ExceptionResponse;
 
 @RestControllerAdvice
 public class ErrorHandler {
-    @ExceptionHandler
+    @ExceptionHandler({
+            ParamsIncorrectException.class,
+            ValidationFilmException.class,
+            ValidationUserException.class,
+            UserAlreadyExistException.class
+    })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ExceptionResponse handleIncorrectParameterException(final ParamsIncorrectException e) {
-        return new ExceptionResponse(
-                String.format("Ошибка с полем \"%s\".", e.getParameter())
-        );
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ExceptionResponse handleValidationFilmException(final ValidationFilmException e) {
+    public ExceptionResponse handleBadRequestException(final RuntimeException e) {
         return new ExceptionResponse(e.getMessage());
     }
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ExceptionResponse handleValidationUserException(final ValidationUserException e) {
-        return new ExceptionResponse(e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ExceptionResponse handleInvalidEmailException(final UserAlreadyExistException e) {
-        return new ExceptionResponse(e.getMessage());
-    }
-
-    @ExceptionHandler
+    @ExceptionHandler({UserNotFoundException.class, FilmNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ExceptionResponse handleUserNotFoundException(final UserNotFoundException e) {
-        return new ExceptionResponse(e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ExceptionResponse handleFilmNotFoundException(final FilmNotFoundException e) {
+    public ExceptionResponse handleNotFoundException(final UserNotFoundException e) {
         return new ExceptionResponse(e.getMessage());
     }
 

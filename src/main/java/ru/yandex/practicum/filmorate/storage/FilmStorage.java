@@ -7,7 +7,7 @@ import java.util.List;
 public interface FilmStorage {
     List<Film> findAllFilms();
 
-    Film findFilmById(int filmId);
+    Film findFilmById(long filmId);
 
     Film createFilm(Film requestFilm);
 
