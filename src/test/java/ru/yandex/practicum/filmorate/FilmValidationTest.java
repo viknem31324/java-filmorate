@@ -1,11 +1,12 @@
 package ru.yandex.practicum.filmorate;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.exception.ValidationFilmException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -14,13 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 public class FilmValidationTest {
-    private InMemoryFilmStorage storage;
-
-    @BeforeEach
-    public void init() {
-        storage = new InMemoryFilmStorage();
-    }
+    @Autowired
+    private FilmService service;
 
     @Test
     public void checkEmptyName() {
@@ -32,7 +30,7 @@ public class FilmValidationTest {
 
         ValidationFilmException emptyName = assertThrows(
                 ValidationFilmException.class,
-                () -> storage.createFilm(film)
+                () -> service.createFilm(film)
         );
 
         assertEquals("Название фильма не может быть путым!", emptyName.getMessage());
@@ -67,7 +65,7 @@ public class FilmValidationTest {
 
         ValidationFilmException incorrectDescription = assertThrows(
                 ValidationFilmException.class,
-                () -> storage.createFilm(film)
+                () -> service.createFilm(film)
         );
 
         assertEquals("Описание превышает 200 символов!", incorrectDescription.getMessage());
@@ -84,7 +82,7 @@ public class FilmValidationTest {
 
         ValidationFilmException incorrectDateRealize = assertThrows(
                 ValidationFilmException.class,
-                () -> storage.createFilm(film)
+                () -> service.createFilm(film)
         );
 
         assertEquals("Неверная дата выхода фильма в прокат!", incorrectDateRealize.getMessage());
@@ -101,7 +99,7 @@ public class FilmValidationTest {
 
         ValidationFilmException incorrectDateRealize = assertThrows(
                 ValidationFilmException.class,
-                () -> storage.createFilm(film)
+                () -> service.createFilm(film)
         );
 
         assertEquals("Неверная продолжительность фильма!", incorrectDateRealize.getMessage());
