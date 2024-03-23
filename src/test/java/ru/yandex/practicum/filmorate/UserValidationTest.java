@@ -1,11 +1,12 @@
 package ru.yandex.practicum.filmorate;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.ValidationUserException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -14,13 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 public class UserValidationTest {
-    private UserController controller;
-
-    @BeforeEach
-    public void init() {
-        controller = new UserController();
-    }
+    @Autowired
+    private UserService service;
 
     @Test
     public void checkValidationEmail() {
@@ -32,7 +30,7 @@ public class UserValidationTest {
 
         ValidationUserException emptyEmail = assertThrows(
                 ValidationUserException.class,
-                () -> controller.createUser(user)
+                () -> service.createUser(user)
         );
 
         assertEquals("Не заполнен email!", emptyEmail.getMessage());
@@ -43,7 +41,7 @@ public class UserValidationTest {
 
         ValidationUserException incorrectEmail = assertThrows(
                 ValidationUserException.class,
-                () -> controller.createUser(userNew)
+                () -> service.createUser(userNew)
         );
 
         assertEquals("Некорректный email!", incorrectEmail.getMessage());
@@ -59,7 +57,7 @@ public class UserValidationTest {
 
         ValidationUserException emptyLogin = assertThrows(
                 ValidationUserException.class,
-                () -> controller.createUser(user)
+                () -> service.createUser(user)
         );
 
         assertEquals("Не заполнен логин!", emptyLogin.getMessage());
@@ -70,7 +68,7 @@ public class UserValidationTest {
 
         ValidationUserException incorrectLogin = assertThrows(
                 ValidationUserException.class,
-                () -> controller.createUser(userNew)
+                () -> service.createUser(userNew)
         );
 
         assertEquals("Логин не может содержать пробелы!", incorrectLogin.getMessage());
@@ -84,7 +82,7 @@ public class UserValidationTest {
                 .login(login)
                 .birthday(LocalDate.of(1998, Month.MAY, 9))
                 .build();
-        User newUser = controller.createUser(user);
+        User newUser = service.createUser(user);
         assertEquals(login, newUser.getName());
     }
 
@@ -98,7 +96,7 @@ public class UserValidationTest {
 
         ValidationUserException incorrectBirthday = assertThrows(
                 ValidationUserException.class,
-                () -> controller.createUser(user)
+                () -> service.createUser(user)
         );
 
         assertEquals("Некорректный день рождения!", incorrectBirthday.getMessage());

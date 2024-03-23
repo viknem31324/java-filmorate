@@ -4,10 +4,8 @@ import lombok.Builder;
 import lombok.Value;
 
 import java.time.LocalDate;
+import java.util.Set;
 
-/**
- * Film.
- */
 @Value
 @Builder(toBuilder = true)
 public class Film {
@@ -16,4 +14,5 @@ public class Film {
     String description;
     LocalDate releaseDate;
     Integer duration;
+    Set<Long> likes;
 }

@@ -1,62 +1,66 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationUserException;
-import ru.yandex.practicum.filmorate.exception.UserAlreadyExistException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.validation.UserValidation;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
-@Slf4j
 public class UserController {
-    private long userId = 1;
-    private final Map<Long, User> users = new HashMap<>();
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     public List<User> findAllUsers() {
-        return new ArrayList<>(users.values());
+        return userService.findAllUsers();
+    }
+
+    @GetMapping("/{userId}")
+    public User findUserById(@PathVariable long userId) {
+        return userService.findUserById(userId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> findUserFriends(@PathVariable long id) {
+        return userService.findUserFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> findMutualFriends(@PathVariable long id, @PathVariable long otherId) {
+        return userService.findMutualFriends(id, otherId);
     }
 
     @PostMapping
-    public User createUser(@RequestBody User requestUser) {
-        UserValidation.validation(requestUser);
-        User user = requestUser.toBuilder()
-                .id(userId++)
-                .name(requestUser.getName() == null ? requestUser.getLogin() : requestUser.getName())
-                .build();
-
-        log.info("Текущий пользователь: {}", user);
-
-        for (User userItem : users.values()) {
-            if (userItem.getEmail().equals(user.getEmail())) {
-                throw new UserAlreadyExistException("Пользователь с таким email уже существует!");
-            }
-        }
-
-        users.put(user.getId(), user);
-
-        return user;
+    public User createUser(@RequestBody User user) {
+        return userService.createUser(user);
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User requestUser) {
-        log.info("Текущий пользователь: {}", requestUser);
+    public User updateUser(@RequestBody User user) {
+        return userService.updateUser(user);
+    }
 
-        if (!users.containsKey(requestUser.getId())) {
-            throw new ValidationUserException("Пользователя не существует!");
-        }
+    @PutMapping("/{id}/friends/{friendId}")
+    public User addToFriends(@PathVariable long id, @PathVariable long friendId) {
+        return userService.addToFriends(id, friendId);
+    }
 
-        UserValidation.validation(requestUser);
-
-        users.put(requestUser.getId(), requestUser);
-
-        return requestUser;
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public User deleteFromFriends(@PathVariable long id, @PathVariable long friendId) {
+        return userService.deleteFromFriends(id, friendId);
     }
 }
