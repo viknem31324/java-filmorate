@@ -13,16 +13,21 @@ public class ErrorHandler {
             ParamsIncorrectException.class,
             ValidationFilmException.class,
             ValidationUserException.class,
-            UserAlreadyExistException.class
+            UserAlreadyExistException.class,
     })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionResponse handleBadRequestException(final RuntimeException e) {
         return new ExceptionResponse(e.getMessage());
     }
 
-    @ExceptionHandler({UserNotFoundException.class, FilmNotFoundException.class})
+    @ExceptionHandler({
+            UserNotFoundException.class,
+            FilmNotFoundException.class,
+            GenreNotFoundException.class,
+            MpaNotFoundException.class
+    })
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ExceptionResponse handleNotFoundException(final UserNotFoundException e) {
+    public ExceptionResponse handleNotFoundException(final RuntimeException e) {
         return new ExceptionResponse(e.getMessage());
     }
 

@@ -36,15 +36,6 @@ public class FilmController {
         return filmService.findFilmById(filmId);
     }
 
-    @GetMapping("/popular")
-    public List<Film> findPopularFilms(@RequestParam(defaultValue = "10", required = false) Integer count) {
-        if (count <= 0) {
-            throw new ParamsIncorrectException("Некорректный параметр count");
-        }
-
-        return filmService.findPopularFilms(count);
-    }
-
     @PostMapping
     public Film createFilm(@RequestBody Film film) {
         return filmService.createFilm(film);
@@ -63,5 +54,14 @@ public class FilmController {
     @DeleteMapping("/{id}/like/{userId}")
     public Film deleteFromLikes(@PathVariable long id, @PathVariable long userId) {
         return filmService.deleteFromLikes(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> findPopularFilms(@RequestParam(defaultValue = "10", required = false) Integer count) {
+        if (count <= 0) {
+            throw new ParamsIncorrectException("Некорректный параметр count");
+        }
+
+        return filmService.findPopularFilms(count);
     }
 }
