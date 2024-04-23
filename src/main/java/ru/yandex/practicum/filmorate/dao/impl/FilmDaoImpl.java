@@ -32,7 +32,7 @@ public class FilmDaoImpl implements FilmDao {
     private final GenreDao genreDao;
 
     @Autowired
-    public FilmDaoImpl(JdbcTemplate jdbcTemplate, MpaDao mpaDao, GenreDao genreDao){
+    public FilmDaoImpl(JdbcTemplate jdbcTemplate, MpaDao mpaDao, GenreDao genreDao) {
         this.jdbcTemplate = jdbcTemplate;
         this.mpaDao = mpaDao;
         this.genreDao = genreDao;

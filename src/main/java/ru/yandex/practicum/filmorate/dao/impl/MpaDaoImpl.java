@@ -21,7 +21,7 @@ public class MpaDaoImpl implements MpaDao {
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public MpaDaoImpl(JdbcTemplate jdbcTemplate){
+    public MpaDaoImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
     

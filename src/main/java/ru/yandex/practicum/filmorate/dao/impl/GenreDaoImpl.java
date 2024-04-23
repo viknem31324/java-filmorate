@@ -21,7 +21,7 @@ public class GenreDaoImpl implements GenreDao {
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public GenreDaoImpl(JdbcTemplate jdbcTemplate){
+    public GenreDaoImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
