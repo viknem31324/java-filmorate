@@ -24,7 +24,7 @@ public class MpaDaoImpl implements MpaDao {
     public MpaDaoImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
-    
+
     @Override
     public List<Mpa> findAllMpa() {
         String sql = "select * from mpa";
