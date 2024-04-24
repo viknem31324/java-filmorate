@@ -78,7 +78,7 @@ public class UserValidationTest {
     public void checkEmptyName() {
         String login = "Login";
         User user = User.builder()
-                .email("test@yandex.ru")
+                .email("test11@yandex.ru")
                 .login(login)
                 .birthday(LocalDate.of(1998, Month.MAY, 9))
                 .build();

@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.validation;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
+import ru.yandex.practicum.filmorate.exception.DataIncorrectException;
 import ru.yandex.practicum.filmorate.exception.ValidationUserException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -14,6 +15,10 @@ public class UserValidation {
     private static final LocalDate nowData = LocalDate.now();
 
     public static void validation(User user) throws ValidationUserException {
+        if (user == null) {
+            throw new DataIncorrectException("Ошибка запроса");
+        }
+
         if (user.getEmail() == null) {
             throw new ValidationUserException("Не заполнен email!");
         }

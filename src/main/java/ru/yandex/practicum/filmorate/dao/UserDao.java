@@ -1,13 +1,13 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.dao;
 
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
 
-public interface UserStorage {
-    List<User> findAllUsers();
+public interface UserDao {
+    User findUserById(long id);
 
-    User findUserById(long userId);
+    List<User> findAllUsers();
 
     User createUser(User requestUser);
 
