@@ -51,6 +51,16 @@ public class GenreDaoImpl implements GenreDao {
         }
     }
 
+    @Override
+    public List<Genre> findAllGenreByFilmId(long filmId) {
+        String sql = "select g.id, g.name " +
+                "from genres as g " +
+                "join film_genres as fg on g.id = fg.genre_id " +
+                "where fg.film_id = ?;";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeGenre(rs), filmId);
+    }
+
     private Genre makeGenre(ResultSet rs) throws SQLException {
         return Genre.builder()
                 .id(rs.getLong("id"))

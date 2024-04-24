@@ -3,19 +3,19 @@ package ru.yandex.practicum.filmorate.dao.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.FilmDao;
-import ru.yandex.practicum.filmorate.dao.GenreDao;
-import ru.yandex.practicum.filmorate.dao.MpaDao;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ParamsIncorrectException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -28,14 +28,10 @@ public class FilmDaoImpl implements FilmDao {
     private final Logger log = LoggerFactory.getLogger(FilmDaoImpl.class);
 
     private final JdbcTemplate jdbcTemplate;
-    private final MpaDao mpaDao;
-    private final GenreDao genreDao;
 
     @Autowired
-    public FilmDaoImpl(JdbcTemplate jdbcTemplate, MpaDao mpaDao, GenreDao genreDao) {
+    public FilmDaoImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.mpaDao = mpaDao;
-        this.genreDao = genreDao;
     }
 
     @Override
@@ -60,9 +56,8 @@ public class FilmDaoImpl implements FilmDao {
         SqlRowSet filmRows = jdbcTemplate.queryForRowSet(sql, id);
 
         if (filmRows.next()) {
-            List<Genre> genres = getGenresList(id);
             long mpaId = filmRows.getLong("mpa_id");
-            Mpa mpa = mpaDao.findMpaById(mpaId);
+            Mpa mpa = Mpa.builder().id(mpaId).build();
 
             Film film = Film.builder()
                     .id(filmRows.getLong("id"))
@@ -71,7 +66,6 @@ public class FilmDaoImpl implements FilmDao {
                     .releaseDate(filmRows.getDate("release_date").toLocalDate())
                     .duration(filmRows.getInt("duration"))
                     .rate(filmRows.getInt("rate"))
-                    .genres(genres)
                     .mpa(mpa)
                     .build();
 
@@ -110,15 +104,25 @@ public class FilmDaoImpl implements FilmDao {
 
         String sql = "merge into film_genres (film_id, genre_id) values (?, ?);";
         if (requestFilm.getGenres() != null) {
-            for (Genre genre : requestFilm.getGenres()) {
-                long genreId = genre.getId();
-                String sqlGenre = "select * from genres where id = ?";
-                SqlRowSet genreRows = jdbcTemplate.queryForRowSet(sqlGenre, genreId);
-                if (!genreRows.next()) {
-                    throw new ParamsIncorrectException(String.format("Некорректный жанр id %d", genreId));
+            List<Genre> genres = requestFilm.getGenres();
+            jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+                @Override
+                public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                    String sqlGenre = "select * from genres where id = ?";
+                    SqlRowSet genreRows = jdbcTemplate.queryForRowSet(sqlGenre, genres.get(i).getId());
+                    if (!genreRows.next()) {
+                        throw new ParamsIncorrectException(String.format("Некорректный жанр id %d", genres.get(i).getId()));
+                    }
+
+                    preparedStatement.setLong(1, filmId);
+                    preparedStatement.setLong(2, genres.get(i).getId());
                 }
-                jdbcTemplate.update(sql, filmId, genreId);
-            }
+
+                @Override
+                public int getBatchSize() {
+                    return genres.size();
+                }
+            });
         }
 
         Film film = findFilmById(filmId);
@@ -136,28 +140,48 @@ public class FilmDaoImpl implements FilmDao {
 
         List<Genre> newGenres = requestFilm.getGenres();
         if (newGenres != null) {
-            List<Genre> oldGenres = getGenresList(filmId);
+            List<Genre> oldGenres = getGenresList(filmId).stream()
+                    .map(item -> Genre.builder().id(item).build())
+                    .collect(Collectors.toList());
             List<Genre> removedGenres = newGenres.stream()
                     .filter(genre -> !oldGenres.contains(genre))
                     .collect(Collectors.toList());
 
             String sqlDelete = "delete from film_genres where film_id = ? and genre_id = ?;";
             if (!removedGenres.isEmpty()) {
-                for (Genre genre : removedGenres) {
-                    jdbcTemplate.update(sqlDelete, filmId, genre.getId());
-                }
+                jdbcTemplate.batchUpdate(sqlDelete, new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                        preparedStatement.setLong(1, filmId);
+                        preparedStatement.setLong(2, removedGenres.get(i).getId());
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return removedGenres.size();
+                    }
+                });
             }
 
             String sqlMerge = "merge into film_genres (film_id, genre_id) values (?, ?);";
-            for (Genre genre : newGenres) {
-                long genreId = genre.getId();
-                String sqlGenre = "select * from genres where id = ?";
-                SqlRowSet genreRows = jdbcTemplate.queryForRowSet(sqlGenre, genreId);
-                if (!genreRows.next()) {
-                    throw new ParamsIncorrectException(String.format("Некорректный жанр id %d", genreId));
+            jdbcTemplate.batchUpdate(sqlMerge, new BatchPreparedStatementSetter() {
+                @Override
+                public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                    String sqlGenre = "select * from genres where id = ?";
+                    SqlRowSet genreRows = jdbcTemplate.queryForRowSet(sqlGenre, newGenres.get(i).getId());
+                    if (!genreRows.next()) {
+                        throw new ParamsIncorrectException(String.format("Некорректный жанр id %d", newGenres.get(i).getId()));
+                    }
+
+                    preparedStatement.setLong(1, filmId);
+                    preparedStatement.setLong(2, newGenres.get(i).getId());
                 }
-                jdbcTemplate.update(sqlMerge, filmId, genre.getId());
-            }
+
+                @Override
+                public int getBatchSize() {
+                    return newGenres.size();
+                }
+            });
         }
 
         long mpaId = requestFilm.getMpa().getId();
@@ -224,29 +248,26 @@ public class FilmDaoImpl implements FilmDao {
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs), count);
     }
 
-    private List<Genre> getGenresList(long id) {
+    private List<Long> getGenresList(long id) {
         String sql = "select g.id " +
                 "from genres as g " +
                 "join film_genres as fg on g.id = fg.genre_id " +
                 "where fg.film_id = ?;";
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> genreDao.findGenreById(rs.getLong("id")), id);
+        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("id"), id);
     }
 
     private Film makeFilm(ResultSet rs) throws SQLException {
-        int id = rs.getInt("id");
         long mpaId = rs.getLong("mpa_id");
-        Mpa mpa = mpaDao.findMpaById(mpaId);
-        List<Genre> genres = getGenresList(id);
+        Mpa mpa = Mpa.builder().id(mpaId).build();
 
         return Film.builder()
-                .id(id)
+                .id(rs.getInt("id"))
                 .name(rs.getString("name"))
                 .description(rs.getString("description"))
                 .releaseDate(rs.getDate("release_date").toLocalDate())
                 .duration(rs.getInt("duration"))
                 .rate(rs.getInt("rate"))
-                .genres(genres)
                 .mpa(mpa)
                 .build();
     }

@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import java.time.LocalDate;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -56,15 +57,21 @@ public class FilmDbDaoTest {
 
     @Test
     public void testFindAllFilms() {
-        MpaDaoImpl mpaDao = new MpaDaoImpl(jdbcTemplate);
+        FilmDaoImpl filmDao = new FilmDaoImpl(jdbcTemplate);
         GenreDaoImpl genreDao = new GenreDaoImpl(jdbcTemplate);
-        FilmDaoImpl filmDao = new FilmDaoImpl(jdbcTemplate, mpaDao, genreDao);
+        MpaDaoImpl mpaDao = new MpaDaoImpl(jdbcTemplate);
 
         Film createdFilm = filmDao.createFilm(newFilm1);
         Film dbFilm = newFilm1.toBuilder().id(createdFilm.getId()).build();
         List<Film> filmsList = List.of(dbFilm);
 
-        List<Film> films = filmDao.findAllFilms();
+        List<Film> films = filmDao.findAllFilms().stream()
+                .map(item -> {
+                    List<Genre> genres = genreDao.findAllGenreByFilmId(item.getId());
+                    long mpaId = item.getMpa().getId();
+                    Mpa mpa = mpaDao.findMpaById(mpaId);
+                    return item.toBuilder().mpa(mpa).genres(genres).build();
+                }).collect(Collectors.toList());;
 
         assertEquals(filmsList.size(), films.size(), "Некорректная длина списка");
         assertEquals(dbFilm, films.get(0), "Фильмы не равны");
@@ -72,26 +79,40 @@ public class FilmDbDaoTest {
 
     @Test
     public void testFindFilmById() {
-        MpaDaoImpl mpaDao = new MpaDaoImpl(jdbcTemplate);
+        FilmDaoImpl filmDao = new FilmDaoImpl(jdbcTemplate);
         GenreDaoImpl genreDao = new GenreDaoImpl(jdbcTemplate);
-        FilmDaoImpl filmDao = new FilmDaoImpl(jdbcTemplate, mpaDao, genreDao);
+        MpaDaoImpl mpaDao = new MpaDaoImpl(jdbcTemplate);
 
         Film createdFilm = filmDao.createFilm(newFilm1);
-        Film dbFilm = newFilm1.toBuilder().id(createdFilm.getId()).build();
+        Mpa mpa = mpaDao.findMpaById(createdFilm.getMpa().getId());
+        List<Genre> genres = genreDao.findAllGenreByFilmId(createdFilm.getId());
+        Film dbCreatedFilm = createdFilm.toBuilder()
+                .mpa(mpa)
+                .genres(genres)
+                .build();
+        Film dbFilm = newFilm1.toBuilder()
+                .id(createdFilm.getId())
+                .build();
 
-        assertEquals(dbFilm, createdFilm, "Фильмы не равны");
+        assertEquals(dbFilm, dbCreatedFilm, "Фильмы не равны");
     }
 
     @Test
     public void testCreateAndUpdateUser() {
-        MpaDaoImpl mpaDao = new MpaDaoImpl(jdbcTemplate);
+        FilmDaoImpl filmDao = new FilmDaoImpl(jdbcTemplate);
         GenreDaoImpl genreDao = new GenreDaoImpl(jdbcTemplate);
-        FilmDaoImpl filmDao = new FilmDaoImpl(jdbcTemplate, mpaDao, genreDao);
+        MpaDaoImpl mpaDao = new MpaDaoImpl(jdbcTemplate);
 
         Film createdFilm1 = filmDao.createFilm(newFilm1);
+        Mpa mpa1 = mpaDao.findMpaById(createdFilm1.getMpa().getId());
+        List<Genre> genres1 = genreDao.findAllGenreByFilmId(createdFilm1.getId());
+        Film dbCreatedFilm1 = createdFilm1.toBuilder()
+                .mpa(mpa1)
+                .genres(genres1)
+                .build();
         Film dbFilm = newFilm1.toBuilder().id(createdFilm1.getId()).build();
 
-        assertEquals(dbFilm, createdFilm1, "Фильмы не равны");
+        assertEquals(dbFilm, dbCreatedFilm1, "Фильмы не равны");
 
         Film updatedFilm = Film.builder()
                 .id(dbFilm.getId())
@@ -104,8 +125,14 @@ public class FilmDbDaoTest {
                 .build();
 
         Film createdFilm2 = filmDao.updateFilm(updatedFilm);
+        Mpa mpa2 = mpaDao.findMpaById(createdFilm2.getMpa().getId());
+        List<Genre> genres2 = genreDao.findAllGenreByFilmId(createdFilm2.getId());
+        Film dbCreatedFilm2 = createdFilm2.toBuilder()
+                .mpa(mpa2)
+                .genres(genres2)
+                .build();
 
-        assertEquals(updatedFilm, createdFilm2, "Фильмы не равны");
+        assertEquals(updatedFilm, dbCreatedFilm2, "Фильмы не равны");
     }
 
     @Test
@@ -122,9 +149,7 @@ public class FilmDbDaoTest {
         User createdUser = userDao.createUser(newUser);
         User dbUser = newUser.toBuilder().id(createdUser.getId()).build();
 
-        MpaDaoImpl mpaDao = new MpaDaoImpl(jdbcTemplate);
-        GenreDaoImpl genreDao = new GenreDaoImpl(jdbcTemplate);
-        FilmDaoImpl filmDao = new FilmDaoImpl(jdbcTemplate, mpaDao, genreDao);
+        FilmDaoImpl filmDao = new FilmDaoImpl(jdbcTemplate);
 
         Film createdFilm1 = filmDao.createFilm(newFilm1);
         Film dbFilm = newFilm1.toBuilder().id(createdFilm1.getId()).build();
@@ -161,9 +186,7 @@ public class FilmDbDaoTest {
         User createdUser2 = userDao.createUser(newUser2);
         User dbUser2 = newUser2.toBuilder().id(createdUser2.getId()).build();
 
-        MpaDaoImpl mpaDao = new MpaDaoImpl(jdbcTemplate);
-        GenreDaoImpl genreDao = new GenreDaoImpl(jdbcTemplate);
-        FilmDaoImpl filmDao = new FilmDaoImpl(jdbcTemplate, mpaDao, genreDao);
+        FilmDaoImpl filmDao = new FilmDaoImpl(jdbcTemplate);
 
         Film createdFilm1 = filmDao.createFilm(newFilm1);
         Film dbFilm1 = newFilm1.toBuilder().id(createdFilm1.getId()).build();
